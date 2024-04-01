@@ -4,8 +4,10 @@ import { is_string_literal } from "./utils";
  * Sym 类，叫sym 只是因为js已经有了Symbol，意思就是Symbol
  * 含义是 符号类：包括终结符和非终结符，term 代表是否为终结符
  */
+
 class Sym {
-  constructor(private name: string | null, private terminal: boolean = false) {
+  public value: PrimitiveType = null;
+  constructor(private name: string, private terminal: boolean = false) {
     // pass
   }
 
@@ -60,7 +62,39 @@ class Sym {
     return hash;
   }
 
-  public static from_sym(source: Sym) {
-    // todo
+  public static from(source: Sym | string | any[]) {
+    if (source instanceof Sym) {
+      return source;
+    }
+    if (typeof source === "string") {
+      const _sym = new Sym(source);
+      if (_sym.is_literal) {
+        _sym.terminal = true;
+        if (_sym.name === '""' || _sym.name === "''") {
+          _sym.terminal = false;
+          _sym.name = "";
+        }
+
+        try {
+          _sym.value = eval(_sym.name ?? "");
+        } catch {}
+      } else if (source === "#" || source === "$") {
+        _sym.terminal = true;
+      }
+    } else if (Array.isArray(source)) {
+      if (source.length === 0) {
+        throw new Error(`bad symbol:${source}`);
+      }
+      if (source.length === 1) {
+        return new Sym(source[0]);
+      } else if (source[0].length === 2) {
+        return new Sym(source[0], source[1]);
+      } else {
+        const _sym = new Sym(source[0], source[1]);
+        _sym.value = source[2];
+        return _sym;
+      }
+    }
+    throw new Error(`bad symbol:${source}`);
   }
 }
