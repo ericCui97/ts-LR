@@ -1,13 +1,25 @@
-import { is_string_literal } from "./utils";
+export function is_string_literal(str: string) {
+  // 正则表达式，匹配以单引号或双引号开头和结尾的字符串
+  // 注意：这里假设字符串中不包含内部的引号，即不考虑转义的情况
+  const regex = /^(["'])(?:\\\1|.)*?\1$/;
+  return regex.test(str);
+}
 
 /*
  * Sym 类，叫sym 只是因为js已经有了Symbol，意思就是Symbol
  * 含义是 符号类：包括终结符和非终结符，term 代表是否为终结符
  */
 
-class Sym {
+export class Sym {
   public value: PrimitiveType = null;
-  constructor(private name: string, private terminal: boolean = false) {
+  public name: string = "";
+  public terminal: boolean = false;
+  constructor(name: string, terminal: boolean = false) {
+    if (typeof this.name !== "string") {
+      throw new Error("name must be string in sym");
+    }
+    this.name = name;
+    this.terminal = terminal;
     // pass
   }
 
@@ -61,40 +73,41 @@ class Sym {
     }
     return hash;
   }
+}
 
-  public static from(source: Sym | string | any[]) {
-    if (source instanceof Sym) {
-      return source;
-    }
-    if (typeof source === "string") {
-      const _sym = new Sym(source);
-      if (_sym.is_literal) {
-        _sym.terminal = true;
-        if (_sym.name === '""' || _sym.name === "''") {
-          _sym.terminal = false;
-          _sym.name = "";
-        }
-
-        try {
-          _sym.value = eval(_sym.name ?? "");
-        } catch {}
-      } else if (source === "#" || source === "$") {
-        _sym.terminal = true;
-      }
-    } else if (Array.isArray(source)) {
-      if (source.length === 0) {
-        throw new Error(`bad symbol:${source}`);
-      }
-      if (source.length === 1) {
-        return new Sym(source[0]);
-      } else if (source[0].length === 2) {
-        return new Sym(source[0], source[1]);
-      } else {
-        const _sym = new Sym(source[0], source[1]);
-        _sym.value = source[2];
-        return _sym;
-      }
-    }
-    throw new Error(`bad symbol:${source}`);
+export function load_symbol(source: Sym | string | any[]) {
+  if (source instanceof Sym) {
+    return source;
   }
+  if (typeof source === "string") {
+    const _sym = new Sym(source);
+    if (_sym.is_literal) {
+      _sym.terminal = true;
+      if (_sym.name === '""' || _sym.name === "''") {
+        _sym.terminal = false;
+        _sym.name = "";
+      }
+
+      try {
+        _sym.value = eval(_sym.name ?? "");
+      } catch {}
+    } else if (source === "#" || source === "$") {
+      _sym.terminal = true;
+    }
+    return _sym;
+  } else if (Array.isArray(source)) {
+    if (source.length === 0) {
+      throw new Error(`bad symbol:[]`);
+    }
+    if (source.length === 1) {
+      return new Sym(source[0]);
+    } else if (source[0].length === 2) {
+      return new Sym(source[0], source[1]);
+    } else {
+      const _sym = new Sym(source[0], source[1]);
+      _sym.value = source[2];
+      return _sym;
+    }
+  }
+  throw new Error(`bad symbol:${source}`);
 }
