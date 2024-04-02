@@ -1,6 +1,5 @@
-// import { is_string_literal } from "../utils";
-import type * as SymType from "../symbol";
-const { Sym, load_symbol } = jest.requireActual<typeof SymType>("../symbol");
+import { Sym, load_symbol } from "../symbol";
+
 describe("Sym class", () => {
   test("constructor with name", () => {
     const sym = new Sym("test");
