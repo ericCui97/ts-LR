@@ -1,19 +1,17 @@
-
-
 /*
  * Sym 类，叫sym 只是因为js已经有了Symbol，意思就是Symbol
  * 含义是 符号类：包括终结符和非终结符，term 代表是否为终结符
  */
 
-import { is_string_literal } from "./utils";
+import { is_string_literal } from './utils';
 
 export class Sym {
   public value: PrimitiveType = null;
-  public name: string = "";
+  public name: string = '';
   public terminal: boolean = false;
   constructor(name: string, terminal: boolean = false) {
-    if (typeof this.name !== "string") {
-      throw new Error("name must be string in sym");
+    if (typeof this.name !== 'string') {
+      throw new Error('name must be string in sym');
     }
     this.name = name;
     this.terminal = terminal;
@@ -21,11 +19,11 @@ export class Sym {
   }
 
   public to_string() {
-    return !!this.name ? this.name : "anonymous";
+    return !!this.name ? this.name : 'anonymous';
   }
 
   public equal(right: Sym | string | null) {
-    if (typeof right === "string" || right === null) {
+    if (typeof right === 'string' || right === null) {
       return this.name === right;
     } else {
     }
@@ -40,17 +38,17 @@ export class Sym {
   }
   // 判断是否是字符串字面量 类似 “hello”
   get is_literal() {
-    return is_string_literal(this.name ?? "");
+    return is_string_literal(this.name ?? '');
   }
   // 判断是否是空/epsilon
   get is_epsilon() {
     if (this.terminal) {
       return false;
-    } else if (this.name === "") {
+    } else if (this.name === '') {
       return true;
     } else if (
-      ["%empty", "%e", "%epsilon", "\u03b5", "<empty>"].includes(
-        this.name ?? ""
+      ['%empty', '%e', '%epsilon', '\u03b5', '<empty>'].includes(
+        this.name ?? ''
       )
     ) {
       return true;
@@ -72,23 +70,23 @@ export class Sym {
   }
 }
 
-export function load_symbol(source: Sym | string | any[]) {
+export function load_symbol(source: SymbolSourceType) {
   if (source instanceof Sym) {
     return source;
   }
-  if (typeof source === "string") {
+  if (typeof source === 'string') {
     const _sym = new Sym(source);
     if (_sym.is_literal) {
       _sym.terminal = true;
       if (_sym.name === '""' || _sym.name === "''") {
         _sym.terminal = false;
-        _sym.name = "";
+        _sym.name = '';
       }
 
       try {
-        _sym.value = eval(_sym.name ?? "");
+        _sym.value = eval(_sym.name ?? '');
       } catch {}
-    } else if (source === "#" || source === "$") {
+    } else if (source === '#' || source === '$') {
       _sym.terminal = true;
     }
     return _sym;
@@ -108,3 +106,111 @@ export function load_symbol(source: Sym | string | any[]) {
   }
   throw new Error(`bad symbol:${source}`);
 }
+/**
+ *  Vector 符号表
+ * vector = [sym1, sym2, ...]
+ */
+export class Vector {
+  public m: Sym[];
+  private __hash__: string = '';
+
+  constructor(vector: any[]) {
+    this.m = this.load_vector(vector);
+  }
+
+  private load_vector(vector: any[]) {
+    let epsilon = true;
+    let output = [];
+
+    const temp = vector.map(item => load_symbol(item));
+    for (const it of temp) {
+      if (!it.is_epsilon) {
+        epsilon = false;
+        break;
+      }
+    }
+
+    if (!epsilon) {
+      for (const item of temp) {
+        output.push(item);
+      }
+    }
+    return output;
+  }
+
+  public get hash() {
+    //todo
+    if (this.__hash__) {
+      return this.__hash__;
+    }
+  }
+
+  get length() {
+    return this.m.length;
+  }
+
+  public get_item(index: number) {
+    return this.m[index];
+  }
+
+  public contains(key: number | Sym) {
+    if (typeof key === 'number') {
+      return key < this.length;
+    }
+    for (const it in this.m) {
+      // @ts-ignore
+      if (it === key) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  get is_empty() {
+    return this.m.length === 0;
+  }
+
+  leftmost_terminal() {
+    for (const it of this.m) {
+      if (it.terminal) return it;
+    }
+
+    return null;
+  }
+
+  rightmost_terminal() {
+    for (let i = this.m.length - 1; i >= 0; i--) {
+      const it = this.m[i];
+      if (it.terminal) return it;
+    }
+    return null;
+  }
+}
+/**
+ * 产生式
+ * 格式：
+ * head:sym
+ * body:vector
+ */
+// class Production {
+//   private head: Sym | null = null;
+//   private body: Vector | null = null;
+//   private index: number = -1;
+//   private is_epsilon: boolean = false;
+//   private has_epslion: boolean = false;
+//   private precedence = null;
+//   private action = null;
+
+//   constructor(
+//     head:Sym,
+//     body:Vector,
+
+//   ) {
+//     this
+//   }
+
+//   get length() {
+
+//   }
+
+// }
