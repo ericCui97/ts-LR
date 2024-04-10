@@ -4,3 +4,14 @@ export function is_string_literal(str: string) {
   const regex = /^(["'])(?:\\\1|.)*?\1$/;
   return regex.test(str);
 }
+
+
+export function assert(val:any,type:any){
+  if(typeof type==='string'){
+    return typeof val === type;
+  }
+  else{
+    return val instanceof type;
+  }
+  
+}

@@ -3,9 +3,10 @@
  * 含义是 符号类：包括终结符和非终结符，term 代表是否为终结符
  */
 
+import { Base, Comparable } from './base';
 import { is_string_literal } from './utils';
 
-export class Sym {
+export class Sym implements Base,Comparable {
   public value: PrimitiveType = null;
   public name: string = '';
   public terminal: boolean = false;
@@ -106,86 +107,7 @@ export function load_symbol(source: SymbolSourceType) {
   }
   throw new Error(`bad symbol:${source}`);
 }
-/**
- *  Vector 符号表
- * vector = [sym1, sym2, ...]
- */
-export class Vector {
-  public m: Sym[];
-  private __hash__: string = '';
 
-  constructor(vector: any[]) {
-    this.m = this.load_vector(vector);
-  }
-
-  private load_vector(vector: any[]) {
-    let epsilon = true;
-    let output = [];
-
-    const temp = vector.map(item => load_symbol(item));
-    for (const it of temp) {
-      if (!it.is_epsilon) {
-        epsilon = false;
-        break;
-      }
-    }
-
-    if (!epsilon) {
-      for (const item of temp) {
-        output.push(item);
-      }
-    }
-    return output;
-  }
-
-  public get hash() {
-    //todo
-    if (this.__hash__) {
-      return this.__hash__;
-    }
-  }
-
-  get length() {
-    return this.m.length;
-  }
-
-  public get_item(index: number) {
-    return this.m[index];
-  }
-
-  public contains(key: number | Sym) {
-    if (typeof key === 'number') {
-      return key < this.length;
-    }
-    for (const it in this.m) {
-      // @ts-ignore
-      if (it === key) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  get is_empty() {
-    return this.m.length === 0;
-  }
-
-  leftmost_terminal() {
-    for (const it of this.m) {
-      if (it.terminal) return it;
-    }
-
-    return null;
-  }
-
-  rightmost_terminal() {
-    for (let i = this.m.length - 1; i >= 0; i--) {
-      const it = this.m[i];
-      if (it.terminal) return it;
-    }
-    return null;
-  }
-}
 /**
  * 产生式
  * 格式：
